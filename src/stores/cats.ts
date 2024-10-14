@@ -41,16 +41,13 @@ export const useStore = defineStore("storeId", {
       try {
         this.isLoading = true;
 
-        const fetchCats = await fetch(
-          "https://api.thecatapi.com/v1/favourites",
-          {
-            method: "POST",
-            headers: HEADER,
-            body: JSON.stringify({
-              image_id: id,
-            }),
-          }
-        );
+        return await fetch("https://api.thecatapi.com/v1/favourites", {
+          method: "POST",
+          headers: HEADER,
+          body: JSON.stringify({
+            image_id: id,
+          }),
+        });
       } catch (error) {
         alert(error);
       } finally {
