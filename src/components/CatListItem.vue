@@ -1,13 +1,7 @@
 <script setup lang="ts">
+import type { CatsListItem } from '@/interface/cats';
 import { useStore } from '@/stores/cats';
 const store = useStore();
-interface CatsListItem {
-    breeds: Array<string | number | boolean>;
-    height: Number;
-    id: string;
-    url: string;
-    width: number;
-}
 defineProps<{
     catItem: CatsListItem
 }>()

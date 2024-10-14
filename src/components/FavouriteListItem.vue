@@ -1,14 +1,7 @@
 <script setup lang="ts">
+import type { FavouriteListItem } from '@/interface/cats';
 import { useStore } from '@/stores/cats';
 const store = useStore();
-interface FavouriteListItem {
-    created_at: string
-    id: number
-    image: { id: string, url: string }
-    image_id: string
-    sub_id: null | string
-    user_id: string
-}
 defineProps<{
     favouriteItem: FavouriteListItem
 }>()

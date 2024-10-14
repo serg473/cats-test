@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { type CatsListItem, type FavouriteListItem } from "@/interface/cats";
+import type { CatsListItem, FavouriteListItem } from "@/interface/cats";
 
 const HEADER = {
   "Content-Type": "application/json",
