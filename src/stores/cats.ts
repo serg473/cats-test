@@ -12,22 +12,29 @@ export const useStore = defineStore("storeId", {
     return {
       cats: [] as CatsListItem[],
       favouriteList: [] as FavouriteListItem[],
-      isActive: false,
-      isLoading: false,
+      isActive: false as Boolean,
+      isLoading: false as Boolean,
+      paginationCount: 0 as Number,
+      limit: 15 as Number,
+      page: 0 as Number,
     };
   },
   actions: {
-    async getCatsList() {
+    async getCatsList(pageNumber = 1) {
       try {
         this.isLoading = true;
         this.cats = [];
         const fetchCats = await fetch(
-          "https://api.thecatapi.com/v1/images/search?limit=15",
+          `https://api.thecatapi.com/v1/images/search/?limit=15&page=${pageNumber}`,
           {
             method: "GET",
             headers: HEADER,
             redirect: "follow",
           }
+        );
+        this.page = pageNumber;
+        this.paginationCount = Number(
+          fetchCats.headers.get("pagination-count")
         );
         const response = await fetchCats.json();
         this.cats = response;
