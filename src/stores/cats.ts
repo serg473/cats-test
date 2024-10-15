@@ -12,32 +12,52 @@ export const useStore = defineStore("storeId", {
     return {
       cats: [] as CatsListItem[],
       favouriteList: [] as FavouriteListItem[],
-      isActive: false as Boolean,
       isLoading: false as Boolean,
-      paginationCount: 0 as Number,
-      limit: 15 as Number,
-      page: 0 as Number,
+      currentPage: 1,
+      itemsPerPage: 20,
+      totalPages: 0,
+      paginationCount: 0,
     };
   },
   actions: {
-    async getCatsList(pageNumber = 1) {
+    async loadMoreCatsList() {
+      this.currentPage += 1;
       try {
-        this.isLoading = true;
-        this.cats = [];
         const fetchCats = await fetch(
-          `https://api.thecatapi.com/v1/images/search/?limit=15&page=${pageNumber}`,
+          `https://api.thecatapi.com/v1/images/search/?limit=${this.itemsPerPage}&page=${this.currentPage}`,
           {
             method: "GET",
             headers: HEADER,
             redirect: "follow",
           }
         );
-        this.page = pageNumber;
         this.paginationCount = Number(
           fetchCats.headers.get("pagination-count")
         );
         const response = await fetchCats.json();
-        this.cats = response;
+        this.cats = [...this.cats, ...response];
+      } catch (error) {
+        alert(error);
+      }
+    },
+    async getCatsList() {
+      try {
+        this.isLoading = true;
+        this.cats = [];
+        const fetchCats = await fetch(
+          `https://api.thecatapi.com/v1/images/search/?limit=${this.itemsPerPage}&page=${this.currentPage}`,
+          {
+            method: "GET",
+            headers: HEADER,
+            redirect: "follow",
+          }
+        );
+        this.paginationCount = Number(
+          fetchCats.headers.get("pagination-count")
+        );
+        const response = await fetchCats.json();
+        this.totalPages = Math.ceil(this.paginationCount / this.itemsPerPage);
+        this.cats = [...this.cats, ...response];
       } catch (error) {
         alert(error);
       } finally {
