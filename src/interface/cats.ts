@@ -4,6 +4,8 @@ export interface CatsListItem {
   id: string;
   url: string;
   width: number;
+  like?: boolean;
+  favId?: number;
 }
 export interface FavouriteListItem {
   created_at: string;

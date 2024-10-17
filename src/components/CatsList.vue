@@ -1,30 +1,17 @@
 <script setup lang="ts">
 import { useStore } from '@/stores/cats'
 import CatListItem from './CatListItem.vue';
-import { onMounted, useTemplateRef, watch } from 'vue';
-import { storeToRefs } from 'pinia';
 const store = useStore();
-const observerDOM = useTemplateRef('observer')
-const { currentPage, getCatsList } = storeToRefs(store)
-onMounted(() => {
-    const options = {
-        rootMargin: '0px',
-        threshold: 1.0
-    }
-    const callback = function (entries, observer) {
-        if (entries[0].isIntersecting && store.currentPage < store.totalPages) {
-            store.loadMoreCatsList();
-        }
-    };
-    const observer = new IntersectionObserver(callback, options);
-    observer.observe(observerDOM.value)
-})
 </script>
 <template>
-    <div class="List">
-        <CatListItem v-for="catItem in store.cats" :key="catItem.id" :catItem="catItem" />
-        <div ref="observer" class="observer"><img src="https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif" alt="">
+    <div class="List" v-if="store.cats.length > 0">
+        <transition-group name="cats-list">
+            <CatListItem v-for="catItem in store.cats" :key="catItem.id" :catItem="catItem" />
+        </transition-group>
+        <div v-intersection="store.loadMoreCatsList" class="observer">... загружаем
+            еще котиков ...
         </div>
+
     </div>
 </template>
 <style lang="scss">
@@ -35,12 +22,16 @@ onMounted(() => {
     margin-top: 48px;
 }
 
-.active-page {
-    border: 1px solid #000;
-}
-
 .observer {
     margin: 0 auto;
     margin-bottom: 48px;
+    background-color: #2196F3;
+    width: 100%;
+    color: #ffffff;
+    padding: 20px 0;
+    text-align: center;
+    font-size: 16px;
+    line-height: 21px;
+    letter-spacing: 0.25px;
 }
 </style>

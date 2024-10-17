@@ -8,92 +8,86 @@ const HEADER = {
 };
 
 export const useStore = defineStore("storeId", {
-  state: () => {
-    return {
-      cats: [] as CatsListItem[],
-      favouriteList: [] as FavouriteListItem[],
-      isLoading: false as Boolean,
-      currentPage: 1,
-      itemsPerPage: 20,
-      totalPages: 0,
-      paginationCount: 0,
-    };
-  },
-  actions: {
-    async loadMoreCatsList() {
-      this.currentPage += 1;
-      try {
-        const fetchCats = await fetch(
-          `https://api.thecatapi.com/v1/images/search/?limit=${this.itemsPerPage}&page=${this.currentPage}`,
-          {
-            method: "GET",
-            headers: HEADER,
-            redirect: "follow",
-          }
-        );
-        this.paginationCount = Number(
-          fetchCats.headers.get("pagination-count")
-        );
-        const response = await fetchCats.json();
-        this.cats = [...this.cats, ...response];
-      } catch (error) {
-        alert(error);
-      }
-    },
-    async getCatsList() {
-      try {
-        this.isLoading = true;
-        this.cats = [];
-        const fetchCats = await fetch(
-          `https://api.thecatapi.com/v1/images/search/?limit=${this.itemsPerPage}&page=${this.currentPage}`,
-          {
-            method: "GET",
-            headers: HEADER,
-            redirect: "follow",
-          }
-        );
-        this.paginationCount = Number(
-          fetchCats.headers.get("pagination-count")
-        );
-        const response = await fetchCats.json();
-        this.totalPages = Math.ceil(this.paginationCount / this.itemsPerPage);
-        this.cats = [...this.cats, ...response];
-      } catch (error) {
-        alert(error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    async createFavouritePicture(id: string) {
-      try {
-        this.isLoading = true;
+  state: () => ({
+    cats: [] as CatsListItem[],
+    favouriteList: [] as FavouriteListItem[],
+    isLoading: false as Boolean,
+    isLoadingMoreData: false as Boolean,
+    currentPage: 1 as Number,
+    itemsPerPage: 20 as Number,
+    totalPages: 0 as Number,
+    paginationCount: 0 as Number,
+    favId: [] as Array<Number>,
+  }),
 
-        return await fetch("https://api.thecatapi.com/v1/favourites", {
-          method: "POST",
-          headers: HEADER,
-          body: JSON.stringify({
-            image_id: id,
-          }),
-        });
+  actions: {
+    async fetchCats(page = this.currentPage) {
+      const response = await fetch(
+        `https://api.thecatapi.com/v1/images/search/?limit=${this.itemsPerPage}&page=${page}`,
+        { method: "GET", headers: HEADER }
+      );
+      this.paginationCount = Number(response.headers.get("pagination-count"));
+      return response.json();
+    },
+
+    async loadMoreCatsList() {
+      this.currentPage++;
+      this.isLoadingMoreData = true;
+      try {
+        const response = await this.fetchCats();
+        this.cats.push(...response);
+      } catch (error) {
+        alert(error);
+      } finally {
+        this.isLoadingMoreData = false;
+      }
+    },
+
+    async getCatsList() {
+      this.isLoading = true;
+      this.cats = [];
+      try {
+        const response = await this.fetchCats();
+        this.totalPages = Math.ceil(this.paginationCount / this.itemsPerPage);
+        this.cats = response.map((item) => ({ ...item, like: false }));
       } catch (error) {
         alert(error);
       } finally {
         this.isLoading = false;
       }
     },
-    async getAllFavouriteItem() {
+
+    async createFavouritePicture(imageId: string, like: boolean | undefined) {
       try {
-        this.isLoading = true;
-        this.favouriteList = [];
-        const fetchCats = await fetch(
+        const indexOf = this.cats.findIndex((item) => item.id === imageId);
+        if (!like) {
+          const fetchFavourite = await fetch(
+            "https://api.thecatapi.com/v1/favourites",
+            {
+              method: "POST",
+              headers: HEADER,
+              body: JSON.stringify({ image_id: imageId }),
+            }
+          );
+          const response = await fetchFavourite.json();
+          this.cats[indexOf].like = true;
+          this.cats[indexOf].favId = response.id;
+        } else {
+          this.deleteFavouriteItem(imageId, true);
+        }
+      } catch (error) {
+        alert(error);
+      }
+    },
+
+    async getAllFavouriteItems() {
+      this.isLoading = true;
+      try {
+        const fetchFavourit = await fetch(
           "https://api.thecatapi.com/v1/favourites",
-          {
-            method: "GET",
-            headers: HEADER,
-            redirect: "follow",
-          }
+          { method: "GET", headers: HEADER }
         );
-        const response = await fetchCats.json();
+        const response = await fetchFavourit.json();
         this.favouriteList = response;
       } catch (error) {
         alert(error);
@@ -101,23 +95,26 @@ export const useStore = defineStore("storeId", {
         this.isLoading = false;
       }
     },
-    async deleteFavouriteItem(favouriteId: number) {
+
+    async deleteFavouriteItem(favouriteId: number | string, useFavId = false) {
+      const indexOfCat = this.cats.findIndex((cat) => cat.id === favouriteId);
+      const idToDelete =
+        useFavId && indexOfCat !== -1
+          ? this.cats[indexOfCat].favId
+          : favouriteId;
+
       try {
-        this.isLoading = true;
-        const fetchCats = await fetch(
-          `https://api.thecatapi.com/v1/favourites/${favouriteId}`,
-          {
-            method: "DELETE",
-            headers: HEADER,
-          }
-        );
+        await fetch(`https://api.thecatapi.com/v1/favourites/${idToDelete}`, {
+          method: "DELETE",
+          headers: HEADER,
+        });
+
         this.favouriteList = this.favouriteList.filter(
-          (item: FavouriteListItem) => item.id !== favouriteId
+          (item) => item.id !== idToDelete
         );
+        if (useFavId && indexOfCat !== -1) this.cats[indexOfCat].like = false;
       } catch (error) {
         alert(error);
-      } finally {
-        this.isLoading = false;
       }
     },
   },

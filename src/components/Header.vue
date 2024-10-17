@@ -27,8 +27,13 @@ $blue: #2196F3;
 
     a {
         text-align: center;
-
+        transition: all ease-in 0.3s;
         &.router-link-active {
+            background-color: rgba(30, 136, 229, 1);
+            color: rgba(255, 255, 255, 1);
+        }
+
+        &:hover {
             background-color: rgba(30, 136, 229, 1);
             color: rgba(255, 255, 255, 1);
         }

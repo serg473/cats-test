@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CatsListItem } from '@/interface/cats';
+import LikeImage from './LikeImage.vue';
 import { useStore } from '@/stores/cats';
 const store = useStore();
 defineProps<{
@@ -8,10 +9,11 @@ defineProps<{
 </script>
 <template>
     <div class="List-item">
-        <img :src="catItem.url" width="225" height="225" :alt="catItem.id">
-        <button @click="store.createFavouritePicture(catItem.id)">
-            <img src="../assets/heart_empty.svg" alt="Empty_Like">
-        </button>
+        <img :src="catItem?.url" width="225" height="225" :alt="catItem.id">
+        <div class="List-item__like">
+            <LikeImage @click="store.createFavouritePicture(catItem.id, catItem.like)" :like="catItem?.like" />
+        </div>
+
     </div>
 </template>
 <style scoped lang="scss">
@@ -22,24 +24,20 @@ defineProps<{
     cursor: pointer;
     position: relative;
 
-    button {
+    &__like {
         position: absolute;
-        bottom: 24px;
-        right: 19px;
+        bottom: 0;
+        right: 0;
         border: none;
         background: transparent;
         opacity: 0;
         transition: all ease 0.5s;
-
-        img {
-            cursor: pointer;
-        }
     }
 
     &:hover {
         box-shadow: 0px 6px 5px 0px rgba(0, 0, 0, 0.24);
 
-        button {
+        .List-item__like {
             opacity: 1;
         }
     }

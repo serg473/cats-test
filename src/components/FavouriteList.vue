@@ -5,8 +5,10 @@ const store = useStore();
 </script>
 <template>
     <div class="List">
-        <FavouriteListItem v-for="favouriteItem in store.favouriteList" :key="favouriteItem.image_id"
-            :favouriteItem="favouriteItem" />
+        <transition-group name="cats-list">
+            <FavouriteListItem v-for="favouriteItem in store.favouriteList" :key="favouriteItem.image_id"
+                :favouriteItem="favouriteItem" />
+        </transition-group>
     </div>
 </template>
 <style lang="scss">
